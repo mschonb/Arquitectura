@@ -1,0 +1,20 @@
+@Classic books
+#Literature
+
+?Horror writer, creator if IT:
+-H.P. Lovecraft
++Stephen King
+-H.R. Geiger
+-Chuck Palahniuk
+
+?Book with the line, 'To be, or not to be, that is the question'?
+-King Lear
+-Romeo and Juliet
++Hamlet
+-Macbeth
+
+?Fictitious character, allegory for Jesus Christ:
+-Roland Deschaine
+-Gandalf
+-Vito Corleone
++Aslan

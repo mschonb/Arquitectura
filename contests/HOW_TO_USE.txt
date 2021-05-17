@@ -1,0 +1,38 @@
+How to use this tool to create contests:
+
+1. Create the raw file in the following format rules:
+	-Blank lines are ignored
+		+If the line is all whitespace, it is considered blank
+	-The first character of a line denotes the type of data it contains
+		+The first character is not saved to the json file
+	-After a question, the next four non-empty lines must be the possible answers
+		+The correct answer starts with a + sign
+		+Incorrect answers start with a - sign
+	-The title and category of the contest can be in any part of the document, but should preferably be at the begining for easy reading.
+	-For examples:
+		+ The file raw/template.txt is a an example
+		+ The file json/template.json is the result
+		+ The file json/template_formatted.json is a nice-looking version of json/template.json
+	-The following is an example contest with one question.
+
+	@Title of the contest
+	#Category
+	?Question goes here
+	-Answer option 1
+	-Answer option 2
+	-Answer option 3
+	+Answer option 4
+
+2. Run python script raw_to_json.py with two parameters
+	-First parameter is the path to the raw file
+	-Second parameter is the path to use for the output JSON
+	For example, run the following command from this directory to create the template.json file
+
+		python raw_to_json.py raw/template.json json/template.json
+
+
+	Note: This is untested in UNIX systems, so if the arguments don't work, make a copy of the script, disable the lines with the comments 'dynamic input' and 'dynamic output', and re-enable the lines with the comments 'hard-coded input' and 'hard-coded output'
+
+3. Done!
+
+SUGGESTION: Avoid accents

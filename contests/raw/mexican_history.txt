@@ -1,0 +1,20 @@
+@Mexican History
+#History
+
+?What year did Mexico become independent?
++1810
+-1910
+-1492
+-1775
+
+?War of Independence hero who carried the Virgin Mary's standard?
+-Ignacio Allende
+-Vicente Guerrero
++Miguel Hidalgo
+-Guadalupe Victoria
+
+?Peninsula inhabited by the Maya:
++Yucatán
+-Baja California
+-Florida
+-Labrador
