@@ -6,6 +6,8 @@ const admin = require('firebase-admin');
 admin.initializeApp();
 
 const db = admin.firestore();
+const escapeHtml = require('escape-html');
+
 
 // Take the text parameter passed to this HTTP endpoint and insert it into 
 // Firestore under the path /messages/:documentId/original
@@ -38,11 +40,11 @@ exports.makeUppercase = functions.firestore.document('/messages/{documentId}')
 
     exports.addQuestion = functions.https.onRequest(async (req, res) =>
     {
-        const question = req.query.question;
-        const answer = req.query.answer;
-        const fanswer1 = req.query.fanswer1;
-        const fanswer2 = req.query.fanswer2;
-        const fanswer3 = req.query.fanswer3;
+        const question = req.body.question;
+        const answer = req.body.answer;
+        const fanswer1 = req.body.fanswer1;
+        const fanswer2 = req.body.fanswer2;
+        const fanswer3 = req.body.fanswer3;
 
         const writeResult = await admin.firestore().collection('questions').add({
             answer: answer,
@@ -55,7 +57,7 @@ exports.makeUppercase = functions.firestore.document('/messages/{documentId}')
     });
 
     exports.addUser = functions.https.onRequest(async (req, res)=> {
-        const user = req.query.user;
+        const user = req.body.user;
         const userRef = db.collection('users');
         const queryRef = await userRef.where('user', '==', user).get();
         if (queryRef.empty){
@@ -67,4 +69,4 @@ exports.makeUppercase = functions.firestore.document('/messages/{documentId}')
         }
     });
 
-exports.getQuestion = functions.https.onRequest
+
