@@ -7,6 +7,7 @@ admin.initializeApp();
 
 const db = admin.firestore();
 const escapeHtml = require('escape-html');
+const { parse } = require('qs');
 
 
 // Take the text parameter passed to this HTTP endpoint and insert it into 
@@ -61,7 +62,10 @@ exports.makeUppercase = functions.firestore.document('/messages/{documentId}')
         const userRef = db.collection('users');
         const queryRef = await userRef.where('user', '==', user).get();
         if (queryRef.empty){
-            const writeResult = await admin.firestore().collection('users').add({user: user});
+            const writeResult = await db.collection('users').add({
+                user: user,
+                points: 0
+                });
             res.json({result: `Message with ID: ${writeResult.id} added.`});
         }
         else{
@@ -69,4 +73,38 @@ exports.makeUppercase = functions.firestore.document('/messages/{documentId}')
         }
     });
 
-
+    exports.setUserPoints = functions.https.onRequest(async (req, res) => {
+        const points = req.body.points;
+        data = {
+          points: parseInt(points)
+        }
+    
+        const userdoc = await db.collection('users')
+        .where('user', '==', req.body.user).get().then(snapshot => {
+          snapshot.forEach(doc => {
+            const docid = doc.id;
+            db.collection('users').doc(docid).update(data);
+          });
+        }).catch(err =>{
+          res.json({result: `Add points failed`});
+        })
+        res.json({result: `Message with ID:  added.`});
+      });
+    
+      exports.addUserPoints = functions.https.onRequest(async (req, res) => {
+        const points = req.body.points;
+    
+        const userdoc = await db.collection('users')
+        .where('user', '==', req.body.user).get().then(snapshot => {
+          snapshot.forEach(doc => {
+            const docid = doc.id;
+            const data = {
+              points: parseInt(points) + doc.data().points
+            }
+            db.collection('users').doc(docid).update(data);
+          });
+        }).catch(err =>{
+          res.json({result: `Add points failed`});
+        })
+        res.json({result: `Message with ID:  added.`});
+      });
