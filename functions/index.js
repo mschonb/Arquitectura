@@ -8,39 +8,14 @@ admin.initializeApp();
 const db = admin.firestore();
 const escapeHtml = require('escape-html');
 const { parse } = require('qs');
+const { user } = require('firebase-functions/lib/providers/auth');
 
-
-// Take the text parameter passed to this HTTP endpoint and insert it into 
-// Firestore under the path /messages/:documentId/original
-exports.addMessage = functions.https.onRequest(async (req, res) => {
-  // Grab the text parameter.
-  const original = req.query.text;
-  // Push the new message into Firestore using the Firebase Admin SDK.
-  const writeResult = await admin.firestore().collection('messages').add({original: original});
-  // Send back a message that we've successfully written the message
-  res.json({result: `Message with ID: ${writeResult.id} added.`});
-});
-
-// Listens for new messages added to /messages/:documentId/original and creates an
-// uppercase version of the message to /messages/:documentId/uppercase
-exports.makeUppercase = functions.firestore.document('/messages/{documentId}')
-    .onCreate((snap, context) => {
-      // Grab the current value of what was written to Firestore.
-      const original = snap.data().original;
-
-      // Access the parameter `{documentId}` with `context.params`
-      functions.logger.log('Uppercasing', context.params.documentId, original);
-      
-      const uppercase = original.toUpperCase();
-      
-      // You must return a Promise when performing asynchronous tasks inside a Functions such as
-      // writing to Firestore.
-      // Setting an 'uppercase' field in Firestore document returns a Promise.
-      return snap.ref.set({uppercase}, {merge: true});
-    });
 
     exports.addQuestion = functions.https.onRequest(async (req, res) =>
     {
+      /*
+      input: question, correct answer, fake answers 1 2 and 3
+      */
         const question = req.body.question;
         const answer = req.body.answer;
         const fanswer1 = req.body.fanswer1;
@@ -58,13 +33,18 @@ exports.makeUppercase = functions.firestore.document('/messages/{documentId}')
     });
 
     exports.addUser = functions.https.onRequest(async (req, res)=> {
+      /*
+      input: user unique identifier ex: email
+      */
         const user = req.body.user;
         const userRef = db.collection('users');
         const queryRef = await userRef.where('user', '==', user).get();
         if (queryRef.empty){
             const writeResult = await db.collection('users').add({
                 user: user,
-                points: 0
+                points: 0,
+                num_games: 0,
+                games: []
                 });
             res.json({result: `Message with ID: ${writeResult.id} added.`});
         }
@@ -74,6 +54,9 @@ exports.makeUppercase = functions.firestore.document('/messages/{documentId}')
     });
 
     exports.setUserPoints = functions.https.onRequest(async (req, res) => {
+      /*
+      input: user unique identifier ex: email, points
+      */
         const points = req.body.points;
         data = {
           points: parseInt(points)
@@ -92,6 +75,9 @@ exports.makeUppercase = functions.firestore.document('/messages/{documentId}')
       });
     
       exports.addUserPoints = functions.https.onRequest(async (req, res) => {
+         /*
+        input: user unique identifier ex: email, points
+         */
         const points = req.body.points;
     
         const userdoc = await db.collection('users')
@@ -108,3 +94,58 @@ exports.makeUppercase = functions.firestore.document('/messages/{documentId}')
         })
         res.json({result: `Message with ID:  added.`});
       });
+
+      exports.createGame = functions.https.onRequest(async (req, res) =>{
+         /*
+        input: game name, topic
+        */
+        const name = req.body.name;
+        const topic = req.body.topic;
+        const maxplayers = 5;
+        const full = false;
+        const startdate = req.body.start;
+        const enddate = req.body.end;
+
+        const data = {
+            name: name,
+            topic: topic,
+            max_players: maxplayers,
+            isfull: false,
+            players: []
+        }
+        const writeResult = db.collection('games').add(data);
+        res.json({result: `Game with ID: ${writeResult.id} added.`});
+      });
+
+      exports.addUser2Game = functions.https.onRequest(async (req, res)=> {
+         /*
+        input: user ID, game ID
+        */
+        //user
+        userid = req.body.userid;
+        const usersRef = db.collection('users').doc(userid);
+        //game
+        gameid = req.body.gameid;
+        const gameRef = db.collection('games').doc(gameid);
+
+        usersRef.get().then((docSnapshot) => {//check if user exists
+            if (docSnapshot.exists) {
+            usersRef.onSnapshot((doc) => {
+              
+              usersRef.update({
+                games: admin.firestore.FieldValue.arrayUnion(gameid)
+              }); //update user
+
+              gameRef.update({
+                players: admin.firestore.FieldValue.arrayUnion(userid)
+              }); //update game
+
+
+              res.json({result: 'Player added to game'});
+        });
+        } else {
+            res.json({result: 'user does not exist'})
+             // create the document
+        }
+      });
+    });
