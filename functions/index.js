@@ -103,15 +103,14 @@ const { user } = require('firebase-functions/lib/providers/auth');
         const topic = req.body.topic;
         const maxplayers = 5;
         const full = false;
-        const startdate = req.body.start;
-        const enddate = req.body.end;
 
         const data = {
             name: name,
             topic: topic,
             max_players: maxplayers,
             isfull: false,
-            players: []
+            players: [],
+            questions: []
         }
         const writeResult = db.collection('games').add(data);
         res.json({result: `Game with ID: ${writeResult.id} added.`});
@@ -145,7 +144,43 @@ const { user } = require('firebase-functions/lib/providers/auth');
         });
         } else {
             res.json({result: 'user does not exist'})
-             // create the document
+             // error
         }
       });
+    });
+
+    exports.getRandomQuestion = functions.https.onRequest(async (req, res) =>{
+      /*
+        input: user ID, game ID
+      */
+      const gameid = req.query.gameid;
+      const gameRef = db.collection('games').doc(gameid);
+      let question_id = '';
+      //checking if game exists
+      gameRef.get().then((docSnapshot) => {
+        if (docSnapshot.exists){
+          gameRef.onSnapshot((doc) => {
+            //selection random question ID
+            const questions = doc.data().questions;
+            const len = doc.data().questions.length;
+            const rand_q = Math.floor(Math.random() * len);
+            question_id = questions[rand_q];  
+            
+            //check if question exists
+            const questionRef = db.collection('questions').doc(question_id);
+            questionRef.get().then((docSnapshot) =>{
+              if(docSnapshot.exists){
+                questionRef.onSnapshot((doc)=>{
+                  res.json(doc.data());
+                })
+              }else{
+                res.json({result:'question does not exists'});
+              }
+            })
+          })
+        }else{
+          res.json({result: 'game does not exists'});
+        }
+      });
+
     });
