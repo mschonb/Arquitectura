@@ -199,3 +199,21 @@ const { user } = require('firebase-functions/lib/providers/auth');
         })
       })
     });
+
+    exports.getUserByID = functions.https.onRequest(async (req, res)=>{
+      const userid = req.query.userid;
+      const userRef = db.collection('users').doc(userid);
+      
+      userRef.get().then((docSnapshot) =>{
+        if(docSnapshot.exists){
+          userRef.onSnapshot((doc)=>{
+            data = doc.data();
+            data.id = doc.id;
+            res.json(data);
+          })
+        }else{
+          res.json({result:'user does not exist'});
+        }
+      })
+
+    });
