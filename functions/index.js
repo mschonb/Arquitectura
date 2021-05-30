@@ -182,5 +182,20 @@ const { user } = require('firebase-functions/lib/providers/auth');
           res.json({result: 'game does not exists'});
         }
       });
+    });
 
+    exports.getUserByName = functions.https.onRequest(async (req, res)=>{
+      /*
+        input: username ex:(email) / is unique
+      */
+      const username = req.query.user;
+      const userRef = db.collection('users');
+
+      userRef.where('user', '==', username).get().then(snapshot =>{ 
+        snapshot.forEach(doc =>{//should only retrieve a single user
+          data = doc.data();
+          data.id = doc.id;
+          res.json(data);
+        })
+      })
     });
