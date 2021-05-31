@@ -11,7 +11,7 @@ const { parse } = require('qs');
 const { user } = require('firebase-functions/lib/providers/auth');
 
 
-    exports._oldAddQuestion = functions.https.onRequest(async (req, res) =>
+    exports.oldAddQuestion = functions.https.onRequest(async (req, res) =>
     {
       /*
       input: question, correct answer, fake answers 1 2 and 3
