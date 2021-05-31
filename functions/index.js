@@ -11,7 +11,7 @@ const { parse } = require('qs');
 const { user } = require('firebase-functions/lib/providers/auth');
 
 
-    exports.addQuestion = functions.https.onRequest(async (req, res) =>
+    exports._oldAddQuestion = functions.https.onRequest(async (req, res) =>
     {
       /*
       input: question, correct answer, fake answers 1 2 and 3
@@ -217,3 +217,114 @@ const { user } = require('firebase-functions/lib/providers/auth');
       })
 
     });
+
+
+
+    /*
+returns 
+[
+  {"title" : "game 1 name here", "category": "game category here", "id": "game id here"},
+  {"title" : "game 2 name here", "category": "game category here", "id": "game id here"},
+  {"title" : "game 3 name here", "category": "game category here", "id": "game id here"},
+]
+*/
+exports.getContests = functions.https.onRequest(async (req, res) => {
+  var all_docs = [];
+  try{
+    const contests = await admin.firestore().collection('games').get();
+    contests.docs.forEach(doc => {
+      all_docs.push({'title': doc._fieldsProto.title.stringValue, 'category': doc._fieldsProto.category.stringValue, 'id': doc._ref._path.segments[1]});
+      // all_docs.push({'title': doc._fieldsProto.title.stringValue, 'id': doc._ref._path.segments[1]});
+    });
+    return res.status(200).json(all_docs);
+  }catch(error){
+    return res.status(500).json(error.message);
+  }
+});
+
+
+/*
+returns
+[
+  {
+    "question": "Mexican year of independence",
+    "correct_answer": "1810",
+    "incorrect_answers": 
+      [
+        "1710",
+        "1910",
+        "2010"
+      ]
+  },
+  {
+    "question": "Mexican year of independence",
+    "correct_answer": "1810",
+    "incorrect_answers": 
+      [
+        "1710",
+        "1910",
+        "2010"
+      ]
+  },
+  {
+    "question": "Mexican year of independence",
+    "correct_answer": "1810",
+    "incorrect_answers": 
+      [
+        "1710",
+        "1910",
+        "2010"
+      ]
+  }
+]
+*/
+exports.getQuestions = functions.https.onRequest(async (req, res) => {
+  var all_questions = [];
+  const cont_id = req.query.contest;
+  try{
+    const questions = await admin.firestore().collection('questions').where("contest_id", "==", cont_id).get();
+    // const questions = await admin.firestore().collection('questions').get();
+    
+    questions.docs.forEach(doc => {
+      var obj = {'question': doc._fieldsProto.question.stringValue,
+            'correct_answer': doc._fieldsProto.correct_answer.stringValue};
+      var wrong_answers = [];
+      doc._fieldsProto.incorrect_answers.arrayValue.values.forEach(elem => {
+        wrong_answers.push(elem.stringValue);
+      });
+      obj.incorrect_answers = wrong_answers;
+      all_questions.push(obj);
+    });
+    
+    
+    // return res.status(200).json(questions.docs);
+    return res.status(200).json({results: all_questions});
+
+
+    // const questions = await admin.firestore().collection('questions').get();
+    // return res.status(200).json(questions.docs);
+  }catch(error){
+    return res.status(500).json(error.message);
+  }
+});
+
+exports.addContest = functions.https.onRequest(async (req, res) =>{
+  const title = req.query.title;
+  const category = req.query.category;
+  const writeResult = await admin.firestore().collection('games').add({'title':title, 'category':category});
+  res.json({result: `Contest with ID: ${writeResult.id}`});
+});
+
+exports.addQuestion = functions.https.onRequest(async (req, res) => {
+  const id = req.query.id;
+  const question = req.query.question;
+  const correct = req.query.correct;
+  const answers = req.query.answers.split(",");
+  const writeResult = await admin.firestore().collection('questions').add({
+    'question': question,
+    'correct_answer': correct,
+    'incorrect_answers': answers,
+    'contest_id': id
+  });
+  res.json({result: `Created | {"question id": ${writeResult.id}, "contest id": ${id}}`})
+});
