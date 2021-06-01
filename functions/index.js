@@ -36,7 +36,7 @@ const { user } = require('firebase-functions/lib/providers/auth');
       /*
       input: user unique identifier ex: email
       */
-        const user = req.body.user;
+        const user = req.query.user;
         const userRef = db.collection('users');
         const queryRef = await userRef.where('user', '==', user).get();
         if (queryRef.empty){
@@ -57,7 +57,7 @@ const { user } = require('firebase-functions/lib/providers/auth');
       /*
       input: user unique identifier ex: email, points
       */
-        const points = req.body.points;
+        const points = req.query.points;
         data = {
           points: parseInt(points)
         }
@@ -71,7 +71,7 @@ const { user } = require('firebase-functions/lib/providers/auth');
         }).catch(err =>{
           res.json({result: `Add points failed`});
         })
-        res.json({result: `Message with ID:  added.`});
+        res.json({result: `Created User with id ${userdoc.id}`});
       });
     
       exports.addUserPoints = functions.https.onRequest(async (req, res) => {
@@ -81,7 +81,7 @@ const { user } = require('firebase-functions/lib/providers/auth');
         const points = req.body.points;
     
         const userdoc = await db.collection('users')
-        .where('user', '==', req.body.user).get().then(snapshot => {
+        .where('user', '==', req.query.user).get().then(snapshot => {
           snapshot.forEach(doc => {
             const docid = doc.id;
             const data = {
@@ -92,7 +92,7 @@ const { user } = require('firebase-functions/lib/providers/auth');
         }).catch(err =>{
           res.json({result: `Add points failed`});
         })
-        res.json({result: `Message with ID:  added.`});
+        res.json({result: `Added points`});
       });
 
       exports.createGame = functions.https.onRequest(async (req, res) =>{
@@ -160,7 +160,7 @@ const { user } = require('firebase-functions/lib/providers/auth');
       gameRef.get().then((docSnapshot) => {
         if (docSnapshot.exists){
           gameRef.onSnapshot((doc) => {
-            //selection random question ID
+            //select random question ID
             const questions = doc.data().questions;
             const len = doc.data().questions.length;
             const rand_q = Math.floor(Math.random() * len);
@@ -195,12 +195,16 @@ const { user } = require('firebase-functions/lib/providers/auth');
         snapshot.forEach(doc =>{//should only retrieve a single user
           data = doc.data();
           data.id = doc.id;
+          res.set('Access-Control-Allow-Origin', '*');
           res.json(data);
         })
       })
     });
 
     exports.getUserByID = functions.https.onRequest(async (req, res)=>{
+      /*
+        input: user ID
+      */
       const userid = req.query.userid;
       const userRef = db.collection('users').doc(userid);
       
@@ -217,3 +221,4 @@ const { user } = require('firebase-functions/lib/providers/auth');
       })
 
     });
+
