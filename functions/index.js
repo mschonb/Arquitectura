@@ -3,12 +3,14 @@ const functions = require('firebase-functions');
 
 // The Firebase Admin SDK to access Firestore.
 const admin = require('firebase-admin');
+const cors = require('cors')({origin: true});
+
 admin.initializeApp();
 
 const db = admin.firestore();
-const escapeHtml = require('escape-html');
-const { parse } = require('qs');
-const { user } = require('firebase-functions/lib/providers/auth');
+// const escapeHtml = require('escape-html');
+// const { parse } = require('qs');
+// const { user } = require('firebase-functions/lib/providers/auth');
 
 
     exports.oldAddQuestion = functions.https.onRequest(async (req, res) =>
@@ -46,9 +48,11 @@ const { user } = require('firebase-functions/lib/providers/auth');
                 num_games: 0,
                 games: []
                 });
+            res.set('Access-Control-Allow-Origin', '*');
             res.json({result: `Message with ID: ${writeResult.id} added.`});
         }
         else{
+            res.set('Access-Control-Allow-Origin', '*');
             res.json({result: `User already exists`});
         }
     });
@@ -78,21 +82,24 @@ const { user } = require('firebase-functions/lib/providers/auth');
          /*
         input: user unique identifier ex: email, points
          */
-        const points = req.body.points;
-    
+        let x;
+        const points = req.query.points;
         const userdoc = await db.collection('users')
         .where('user', '==', req.query.user).get().then(snapshot => {
           snapshot.forEach(doc => {
             const docid = doc.id;
+            x = docid;
             const data = {
-              points: parseInt(points) + doc.data().points
+              points: doc.data().points + parseInt(points)
             }
             db.collection('users').doc(docid).update(data);
           });
         }).catch(err =>{
+          res.set('Access-Control-Allow-Origin', '*');
           res.json({result: `Add points failed`});
         })
-        res.json({result: `Added points`});
+        res.set('Access-Control-Allow-Origin', '*');
+        res.json({result: `Added ${points} points`});
       });
 
       exports.createGame = functions.https.onRequest(async (req, res) =>{
@@ -222,8 +229,6 @@ const { user } = require('firebase-functions/lib/providers/auth');
 
     });
 
-<<<<<<< HEAD
-=======
 
 
     /*
@@ -304,12 +309,14 @@ exports.getQuestions = functions.https.onRequest(async (req, res) => {
     
     
     // return res.status(200).json(questions.docs);
+    res.set('Access-Control-Allow-Origin', '*');
     return res.status(200).json({results: all_questions});
 
 
     // const questions = await admin.firestore().collection('questions').get();
     // return res.status(200).json(questions.docs);
   }catch(error){
+    res.set('Access-Control-Allow-Origin', '*');
     return res.status(500).json(error.message);
   }
 });
@@ -334,4 +341,3 @@ exports.addQuestion = functions.https.onRequest(async (req, res) => {
   });
   res.json({result: `Created | {"question id": ${writeResult.id}, "contest id": ${id}}`})
 });
->>>>>>> c9df95ced0c64d29f16e5d80c3a3e91b6f7883ee
