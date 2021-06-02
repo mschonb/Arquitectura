@@ -1,8 +1,17 @@
 import React from "react";
-
-
-const Preguntas = () => (
-  <h1>PREGUNTAS</h1>
+import { Button } from 'react-bootstrap';
+const Preguntas = () => {
+return (
+  <div>
+      <Button variant="outline-secondary" href = "/contest1"  >Computer Science </Button>{' '}
+  </div>
 );
+
+}
+
+  
+
+  
+
 
 export default Preguntas;

@@ -1,8 +1,6 @@
 import React, { useState } from "react";
-import { Button, Alert } from "reactstrap";
-import Highlight from "../components/Highlight";
 import Preguntas from "../components/Preguntas";
-import { useAuth0, withAuthenticationRequired } from "@auth0/auth0-react";
+import { useAuth0, withAuthenticationRequired, user } from "@auth0/auth0-react";
 import { getConfig } from "../config";
 import Loading from "../components/Loading";
 
@@ -14,79 +12,31 @@ export const ExternalApiComponent = () => {
     apiMessage: "",
     error: null,
   });
-
+  const {user} = useAuth0();
   const {
     getAccessTokenSilently,
     loginWithPopup,
     getAccessTokenWithPopup,
   } = useAuth0();
 
-  const handleConsent = async () => {
-    try {
-      await getAccessTokenWithPopup();
-      setState({
-        ...state,
-        error: null,
-      });
-    } catch (error) {
-      setState({
-        ...state,
-        error: error.error,
-      });
-    }
+  
 
-    await callApi();
-  };
+  
+  
 
-  const handleLoginAgain = async () => {
-    try {
-      await loginWithPopup();
-      setState({
-        ...state,
-        error: null,
-      });
-    } catch (error) {
-      setState({
-        ...state,
-        error: error.error,
-      });
-    }
-
-    await callApi();
-  };
-
-  const callApi = async () => {
-    try {
-      const token = await getAccessTokenSilently();
-
-      const response = await fetch(`${apiOrigin}/api/external`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const responseData = await response.json();
-
-      setState({
-        ...state,
-        showResult: true,
-        apiMessage: responseData,
-      });
-    } catch (error) {
-      setState({
-        ...state,
-        error: error.error,
-      });
-    }
-  };
-
-  const handle = (e, fn) => {
-    e.preventDefault();
-    fn();
-  };
-
-  return (
-    <Preguntas></Preguntas>
+const checkUser  = () => {
+  console.log(user.email)
+  fetch(`https://us-central1-cov-games.cloudfunctions.net/addUser?user=${user.email}` )
+    .then (res => res.json())
+    .then(data =>{
+        console.log(data);
+    })
+} 
+  return ( 
+    <div>
+    {checkUser()}
+      <Preguntas></Preguntas>
+    </div>
   );
 };
 

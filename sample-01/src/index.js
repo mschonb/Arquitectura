@@ -7,6 +7,7 @@ import { Auth0Provider } from "@auth0/auth0-react";
 import history from "./utils/history";
 import { getConfig } from "./config";
 
+
 const onRedirectCallback = (appState) => {
   history.push(
     appState && appState.returnTo ? appState.returnTo : window.location.pathname
